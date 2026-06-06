@@ -1,0 +1,22 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#15202b"/>
+      <stop offset="1" stop-color="#000000"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="64" y1="84" x2="64" y2="116" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1d9bf0"/>
+      <stop offset="1" stop-color="#1577c2"/>
+    </linearGradient>
+  </defs>
+  <!-- rounded background -->
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <!-- paper sheet -->
+  <path d="M34 22h38l22 22v50a8 8 0 0 1-8 8H34a8 8 0 0 1-8-8V30a8 8 0 0 1 8-8z" fill="#ffffff"/>
+  <path d="M72 22l22 22H80a8 8 0 0 1-8-8V22z" fill="#cfd9de"/>
+  <!-- X mark on sheet -->
+  <path d="M44 40l28 32M72 40L44 72" stroke="#15202b" stroke-width="7" stroke-linecap="round"/>
+  <!-- export badge -->
+  <circle cx="96" cy="96" r="22" fill="url(#accent)"/>
+  <path d="M96 84v20M96 104l-8-8M96 104l8-8" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

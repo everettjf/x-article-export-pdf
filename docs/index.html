@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X Article Export — clean PDF & Markdown from X Articles</title>
+<meta name="description" content="A free, open-source Chrome extension that turns X (Twitter) long-form Articles into clean, beautiful PDFs and Markdown — by rebuilding the real content, not screenshotting the page.">
+<meta property="og:title" content="X Article Export — PDF & Markdown">
+<meta property="og:description" content="Turn X Articles into clean PDFs & Markdown. Rebuilds the real content — no messy screenshots. Free, open-source, 100% local.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://everettjf.github.io/x-article-export-pdf/">
+<meta name="theme-color" content="#0f1419">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="nav">
+  <a class="brand" href="#top">
+    <img src="assets/icon.svg" width="30" height="30" alt="">
+    <span>X Article Export</span>
+  </a>
+  <nav class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#install">Install</a>
+    <a class="nav-gh" href="https://github.com/everettjf/x-article-export-pdf" target="_blank" rel="noopener" aria-label="GitHub repository">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.4-1.27.74-1.56-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.2-3.1-.13-.29-.52-1.46.1-3.05 0 0 .97-.31 3.2 1.18a11 11 0 0 1 5.82 0c2.22-1.5 3.19-1.18 3.19-1.18.62 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.28 5.69.42.36.79 1.07.79 2.16v3.2c0 .31.2.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5z"/></svg>
+    </a>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="pill">Free · Open-source · 100% local</span>
+      <h1>X Articles, exported the way they deserve.</h1>
+      <p class="lede">A Chrome extension that turns X (Twitter) long-form Articles into clean, beautiful <strong>PDFs</strong> and <strong>Markdown</strong> — by rebuilding the real content, not screenshotting the page.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#install">Install the extension</a>
+        <a class="btn btn-ghost" href="https://github.com/everettjf/x-article-export-pdf" target="_blank" rel="noopener">View on GitHub</a>
+      </div>
+      <ul class="hero-checks">
+        <li>Headings, code, math &amp; images preserved</li>
+        <li>No servers, no tracking</li>
+        <li>PDF &amp; Markdown</li>
+      </ul>
+    </div>
+
+    <div class="hero-art" aria-hidden="true">
+      <!-- faux browser showing a clean exported PDF -->
+      <div class="window">
+        <div class="window-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <div class="window-url">Save as PDF</div>
+        </div>
+        <div class="paper">
+          <div class="p-title">Designing a Resilient Event Pipeline</div>
+          <div class="p-byline">Jane Dev · @janedev</div>
+          <div class="p-rule"></div>
+          <div class="p-line w90"></div>
+          <div class="p-line w80"></div>
+          <div class="p-line w70"></div>
+          <div class="p-h"></div>
+          <div class="p-code">
+            <span class="ln">async def consume(stream):</span>
+            <span class="ln i">async for msg in stream:</span>
+            <span class="ln ii">await handle(msg)</span>
+          </div>
+          <div class="p-line w85"></div>
+          <div class="p-fig"></div>
+          <div class="p-line w60"></div>
+        </div>
+      </div>
+      <!-- floating popup mock -->
+      <div class="popup-mock">
+        <div class="pm-head"><span class="pm-logo"></span><b>Article Export</b></div>
+        <div class="pm-badge">Article</div>
+        <div class="pm-row"><span>Style</span><span class="pm-seg"><i class="on">Modern</i><i>Serif</i></span></div>
+        <div class="pm-actions"><span class="pm-btn primary">Save as PDF</span><span class="pm-btn">Markdown</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM / SOLUTION -->
+  <section class="band">
+    <div class="band-grid">
+      <div class="band-card bad">
+        <div class="band-tag">Other tools</div>
+        <h3>Screenshot the page</h3>
+        <p>They drag in the sidebar, faded body text, cookie banners and broken pagination. An Article becomes a 9-page mess you can't search or copy.</p>
+      </div>
+      <div class="band-arrow">→</div>
+      <div class="band-card good">
+        <div class="band-tag">X Article Export</div>
+        <h3>Rebuild the document</h3>
+        <p>Reads X's article DOM and reconstructs real headings, lists, code, math and images into a print-ready document that looks designed for PDF.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="section">
+    <h2 class="section-title">Everything survives the export</h2>
+    <p class="section-sub">Not pixels — structure. Here's what comes through clean.</p>
+    <div class="features">
+      <div class="feature">
+        <div class="f-ico">📄</div>
+        <h3>PDF &amp; Markdown</h3>
+        <p>Save a print-ready PDF with smart page breaks, or GitHub-flavored Markdown that drops straight into a repo or Obsidian.</p>
+      </div>
+      <div class="feature">
+        <div class="f-ico">💻</div>
+        <h3>Code blocks</h3>
+        <p>Fenced code with the original language label and exact whitespace — never re-flowed, never screenshotted.</p>
+      </div>
+      <div class="feature">
+        <div class="f-ico">🔗</div>
+        <h3>Links &amp; emphasis</h3>
+        <p>Hyperlinks (with <code>t.co</code> resolved to the real URL), <strong>bold</strong>, <em>italic</em> and inline code are all preserved.</p>
+      </div>
+      <div class="feature">
+        <div class="f-ico">∑</div>
+        <h3>KaTeX math</h3>
+        <p>Formulas render in the PDF and become clean <code>$…$</code> TeX in Markdown, recovered from KaTeX annotations.</p>
+      </div>
+      <div class="feature">
+        <div class="f-ico">🖼️</div>
+        <h3>Full-res images</h3>
+        <p>Diagrams and figures are pulled at original resolution and laid out with captions — they never split across a page.</p>
+      </div>
+      <div class="feature">
+        <div class="f-ico">🔒</div>
+        <h3>Private by design</h3>
+        <p>No backend, no analytics, no tracking. Everything runs in your browser. Your reading stays yours.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="section section-alt">
+    <h2 class="section-title">How it works</h2>
+    <p class="section-sub">Three steps. Thirty seconds.</p>
+    <ol class="steps">
+      <li>
+        <div class="step-n">1</div>
+        <h3>Open an Article</h3>
+        <p>Navigate to any X long-form Article and click the extension icon.</p>
+      </li>
+      <li>
+        <div class="step-n">2</div>
+        <h3>Pick your style</h3>
+        <p>Modern or Serif, A4 or Letter, with or without a source link.</p>
+      </li>
+      <li>
+        <div class="step-n">3</div>
+        <h3>Export</h3>
+        <p>Save as PDF through the print dialog, or download Markdown instantly.</p>
+      </li>
+    </ol>
+    <p class="how-note">Under the hood it walks X's Draft.js article tree into a neutral list of segments, keeps an allowlist of inline tags, and renders into a CSP-safe page it fully controls. Selectors live in one file, so an X redesign is a small patch — <a href="https://github.com/everettjf/x-article-export-pdf/blob/main/CONTRIBUTING.md">contributions welcome</a>.</p>
+  </section>
+
+  <!-- INSTALL -->
+  <section id="install" class="section">
+    <h2 class="section-title">Install in 30 seconds</h2>
+    <p class="section-sub">Loads unpacked — works in Chrome, Edge, Brave &amp; Arc.</p>
+    <div class="install">
+      <ol class="install-steps">
+        <li><b>Download</b> the repo (clone or ZIP) and unzip it.</li>
+        <li>Open <code>chrome://extensions</code>.</li>
+        <li>Turn on <b>Developer mode</b> (top-right).</li>
+        <li>Click <b>Load unpacked</b> and choose the folder.</li>
+        <li>Pin the icon and open any X Article.</li>
+      </ol>
+      <div class="install-cta">
+        <a class="btn btn-primary" href="https://github.com/everettjf/x-article-export-pdf/archive/refs/heads/main.zip">Download ZIP</a>
+        <a class="btn btn-ghost" href="https://github.com/everettjf/x-article-export-pdf" target="_blank" rel="noopener">Clone on GitHub</a>
+        <code class="clone">git clone https://github.com/everettjf/x-article-export-pdf.git</code>
+      </div>
+    </div>
+  </section>
+
+  <section class="final-cta">
+    <h2>Stop screenshotting your reading.</h2>
+    <p>Free and open-source. Export the X Articles worth keeping.</p>
+    <a class="btn btn-primary lg" href="#install">Get started</a>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="assets/icon.svg" width="26" height="26" alt="">
+      <span>X Article Export</span>
+    </div>
+    <nav class="footer-links">
+      <a href="https://github.com/everettjf/x-article-export-pdf">GitHub</a>
+      <a href="https://github.com/everettjf/x-article-export-pdf/blob/main/PRIVACY.md">Privacy</a>
+      <a href="https://github.com/everettjf/x-article-export-pdf/blob/main/LICENSE">License (MIT)</a>
+      <a href="https://github.com/everettjf/x-article-export-pdf/issues">Report a bug</a>
+    </nav>
+  </div>
+  <p class="footer-fine">Open-source under the MIT License. Not affiliated with X Corp. "X" and "Twitter" are trademarks of their respective owners.</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "x-article-export-pdf",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome extension that exports X (Twitter) Articles to clean PDF & Markdown.",
+  "homepage": "https://github.com/everettjf/x-article-export-pdf",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test",
+    "lint": "node -e \"['src/content/namespace.js','src/content/sanitize.js','src/content/detector.js','src/content/extractor.js','src/content/renderer.js','src/content/markdown.js','src/content/main.js','src/popup/popup.js','src/print/printable.js','src/background/service-worker.js'].forEach(f=>require('child_process').execSync('node --check '+f,{stdio:'inherit'}))\"",
+    "zip": "bash scripts/package.sh"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.0"
+  }
+}

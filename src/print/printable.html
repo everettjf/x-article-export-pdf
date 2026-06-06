@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preparing export…</title>
+<!-- KaTeX styling for any math in the article. Extension-page CSP permits
+     style/font from CDNs; scripts remain restricted to 'self'. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<style id="xa-doc-style"></style>
+<style id="xa-shell-style">
+  .xa-loading{
+    position:fixed; inset:0; display:grid; place-items:center;
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:#536471; background:#fff; z-index:9999;
+  }
+  .xa-loading .ring{
+    width:26px; height:26px; margin:0 auto 12px; border-radius:50%;
+    border:3px solid #e1e8ed; border-top-color:#1d9bf0; animation:xaspin .8s linear infinite;
+  }
+  @keyframes xaspin{to{transform:rotate(360deg);}}
+  @media print{ .xa-loading{display:none !important;} }
+</style>
+</head>
+<body>
+<div class="xa-loading" id="xa-loading">
+  <div>
+    <div class="ring"></div>
+    <div>Preparing your document…</div>
+  </div>
+</div>
+<div id="xa-root"></div>
+<script src="printable.js"></script>
+</body>
+</html>

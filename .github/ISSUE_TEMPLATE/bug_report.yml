@@ -1,0 +1,35 @@
+name: Bug report
+description: Something didn't export correctly
+labels: [bug]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Article URL
+      description: The public X article/tweet URL (if shareable).
+      placeholder: https://x.com/i/articles/...
+  - type: dropdown
+    id: format
+    attributes:
+      label: Export format
+      options: [PDF, Markdown, Both]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What went wrong?
+      description: What did you expect, and what did you get? Screenshots of the output help a lot.
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & version
+      placeholder: Chrome 126 on macOS 14
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output (optional)
+      description: Anything logged under "[X Article Export]" in the DevTools console.
+      render: shell
