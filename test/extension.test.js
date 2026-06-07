@@ -185,6 +185,19 @@ test("falls back to thread extraction when no article view exists", () => {
   assert.equal(segs[0].html, "First tweet body");
 });
 
+test("preloadMedia does not scroll the page when media is already loaded", async () => {
+  const w = load(ARTICLE_HTML);
+  // Pretend every image is already loaded.
+  w.document.querySelectorAll("img").forEach((img) =>
+    Object.defineProperty(img, "complete", { value: true, configurable: true })
+  );
+  const calls = [];
+  w.scrollTo = (x, y) => calls.push([x, y]);
+
+  await w.XAEP.preloadMedia(w.XAEP.detect());
+  assert.equal(calls.length, 0, "should not disturb the page's scroll position");
+});
+
 test("reports 'none' when there is no content", () => {
   const w = load(`<!doctype html><html><head><title>X</title></head><body></body></html>`);
   assert.equal(w.XAEP.detect().mode, "none");

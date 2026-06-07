@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "X Article Export — PDF & Markdown",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Export X (Twitter) long-form Articles to clean, beautiful PDF or Markdown. Reconstructs the real content — no messy screenshots.",
   "homepage_url": "https://github.com/everettjf/x-article-export-pdf",
   "icons": {

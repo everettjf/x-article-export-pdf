@@ -245,24 +245,12 @@
     return extractThread();
   };
 
-  // Force lazy-loaded media to attach by sweeping the article into view, then
-  // returning to the original scroll position. Resolves when settled.
-  XAEP.preloadMedia = async function preloadMedia() {
-    const startY = window.scrollY;
-    const step = Math.max(window.innerHeight * 0.85, 600);
-    const maxScroll = document.body.scrollHeight;
-    for (let y = 0; y <= maxScroll; y += step) {
-      window.scrollTo(0, y);
-      await delay(120);
-    }
-    window.scrollTo(0, startY);
-    await delay(150);
-
-    // Wait (briefly) for currently-attached images to finish decoding.
-    const imgs = Array.from(document.images).filter((i) => !i.complete);
-    await Promise.race([
+  function waitForImages(imgs, timeoutMs) {
+    const pending = imgs.filter((i) => !i.complete);
+    if (!pending.length) return Promise.resolve();
+    return Promise.race([
       Promise.all(
-        imgs.map(
+        pending.map(
           (img) =>
             new Promise((res) => {
               img.addEventListener("load", res, { once: true });
@@ -270,8 +258,61 @@
             })
         )
       ),
-      delay(2500),
+      delay(timeoutMs),
     ]);
+  }
+
+  // Nudge lazy-loaded media into the DOM, while disturbing the live page as
+  // little as possible.
+  //
+  // X virtualizes its layout and lazily mounts content as you scroll; an
+  // aggressive full-document sweep tears down and re-mounts surrounding nodes,
+  // which can leave the (still-open) tab in a greyed "skeleton" state until it
+  // reloads. So we:
+  //   1. skip the sweep entirely when nothing is lazy,
+  //   2. bound the sweep to the detected content container (not the whole
+  //      timeline), and
+  //   3. restore the exact original scroll position (x and y).
+  XAEP.preloadMedia = async function preloadMedia(detection) {
+    const scope =
+      detection && detection.container && detection.container.querySelectorAll
+        ? detection.container
+        : document;
+
+    let imgs = Array.from(scope.querySelectorAll("img"));
+
+    // If everything currently in the container is already loaded, don't touch
+    // the page at all — just make sure decoding finished.
+    const lazy = imgs.filter((i) => !i.complete);
+    if (!lazy.length) {
+      return waitForImages(imgs, 1500);
+    }
+
+    const startX = window.scrollX;
+    const startY = window.scrollY;
+
+    // Compute the container's vertical extent in page coordinates so we sweep
+    // only the article, not the entire feed above/below it.
+    let top = 0;
+    let bottom = document.documentElement.scrollHeight;
+    if (scope !== document && scope.getBoundingClientRect) {
+      const rect = scope.getBoundingClientRect();
+      top = Math.max(0, rect.top + startY);
+      bottom = top + scope.scrollHeight;
+    }
+
+    const step = Math.max(window.innerHeight * 0.9, 600);
+    for (let y = top; y <= bottom; y += step) {
+      window.scrollTo(startX, y);
+      await delay(110);
+    }
+
+    // Restore the user's exact position so the page looks untouched.
+    window.scrollTo(startX, startY);
+    await delay(120);
+
+    imgs = Array.from(scope.querySelectorAll("img"));
+    await waitForImages(imgs, 2500);
   };
 
   function delay(ms) {

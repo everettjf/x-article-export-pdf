@@ -47,7 +47,7 @@
 
     if (message.preload !== false) {
       try {
-        await XAEP.preloadMedia();
+        await XAEP.preloadMedia(detection);
       } catch (_) {
         /* non-fatal */
       }

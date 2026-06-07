@@ -10,7 +10,7 @@
 
   const XAEP = (window.XAEP = window.XAEP || {});
 
-  XAEP.VERSION = "1.0.0";
+  XAEP.VERSION = "1.0.1";
 
   // Escape a string for safe interpolation into HTML text/attribute context.
   XAEP.escapeHtml = function escapeHtml(str) {
