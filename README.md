@@ -43,13 +43,22 @@ X Article Export takes the opposite approach. It reads X's article DOM — the s
 
 ## 🚀 Install
 
-> Not yet on the Chrome Web Store — load it unpacked (takes ~30 seconds).
+**Easiest — from the Chrome Web Store:**
+
+[**➜ Install X Article Export — PDF & Markdown**](https://chromewebstore.google.com/detail/x-article-export-%E2%80%94-pdf-ma/kgkjmkldolapbhbbolonloponfaemheg)
+
+One click, auto-updates, works in Chrome and any Chromium browser (Edge, Brave, Arc…).
+
+<details>
+<summary><b>Or load it unpacked</b> (for development, ~30 seconds)</summary>
 
 1. **Download** this repo — `git clone https://github.com/everettjf/x-article-export-pdf.git` or [grab the ZIP](https://github.com/everettjf/x-article-export-pdf/archive/refs/heads/main.zip) and unzip it.
 2. Open `chrome://extensions` in Chrome (or any Chromium browser: Edge, Brave, Arc…).
 3. Toggle **Developer mode** on (top-right).
 4. Click **Load unpacked** and select the project folder.
 5. Pin the **X Article Export** icon to your toolbar.
+
+</details>
 
 ## 📄 Usage
 
