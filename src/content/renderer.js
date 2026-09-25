@@ -130,25 +130,6 @@ ${body}
     return STYLES(normalizeOpts(options));
   };
 
-  // A fully self-contained HTML document — used for the "download HTML" fallback
-  // when a controlled print page is unavailable.
-  XAEP.buildDocument = function buildDocument(segments, meta, options) {
-    const opts = normalizeOpts(options);
-    return `<!doctype html>
-<html lang="en" data-theme="${escapeHtml(opts.theme)}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(meta.title)}</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-<style>${STYLES(opts)}</style>
-</head>
-<body>
-${XAEP.buildBody(segments, meta, opts)}
-</body>
-</html>`;
-  };
-
   function STYLES(opts) {
     const pageSize = opts.pageSize === "letter" ? "letter" : "A4";
     return `

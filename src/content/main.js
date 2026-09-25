@@ -14,7 +14,7 @@
     return {
       title: detection.title || XAEP.cleanDocTitle(),
       url: location.href,
-      byline: XAEP.getByline(),
+      byline: XAEP.getByline(detection.mode === "thread" ? detection.container : null),
     };
   }
 
@@ -45,15 +45,15 @@
       return { ok: false, error: "no-content" };
     }
 
-    if (message.preload !== false) {
-      try {
-        await XAEP.preloadMedia(detection);
-      } catch (_) {
-        /* non-fatal */
-      }
+    let segments;
+    try {
+      segments = message.preload === false
+        ? XAEP.extract(detection)
+        : await XAEP.extractComplete(detection);
+    } catch (err) {
+      XAEP.log("complete extraction failed; using current page", err);
+      segments = XAEP.extract(detection);
     }
-
-    const segments = XAEP.extract(detection);
     if (!segments.length) {
       return { ok: false, error: "empty" };
     }

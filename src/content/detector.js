@@ -43,6 +43,24 @@
     return null;
   }
 
+  function findCurrentTweet() {
+    const statusId = location.pathname.match(/\/status\/(\d+)/)?.[1];
+    if (!statusId) return null;
+    const articles = Array.from(document.querySelectorAll("article"));
+    const matches = (art, requireTime) =>
+      Array.from(art.querySelectorAll('a[href*="/status/"]')).some((a) => {
+        if (requireTime && !a.querySelector("time")) return false;
+        try {
+          return new URL(a.href, location.href).pathname.match(/\/status\/(\d+)/)?.[1] === statusId;
+        } catch (_) {
+          return false;
+        }
+      });
+    const matched = articles.find((art) => matches(art, true)) ||
+      articles.find((art) => matches(art, false));
+    return matched || (articles.length === 1 ? articles[0] : null);
+  }
+
   XAEP.detect = function detect() {
     const readView = findArticleReadView();
     if (readView) {
@@ -53,7 +71,8 @@
       };
     }
 
-    const fallback = findRichBlockContainer();
+    const articleRoute = /\/i\/articles\/|\/status\/\d+/.test(location.pathname);
+    const fallback = articleRoute ? findRichBlockContainer() : null;
     if (fallback) {
       return {
         mode: "article",
@@ -62,8 +81,9 @@
       };
     }
 
-    if (document.querySelector("article")) {
-      return { mode: "thread", container: document, title: cleanDocTitle() };
+    const currentTweet = findCurrentTweet();
+    if (currentTweet) {
+      return { mode: "thread", container: currentTweet, title: cleanDocTitle() };
     }
 
     return { mode: "none", container: null, title: cleanDocTitle() };
@@ -89,9 +109,9 @@
 
   XAEP.cleanDocTitle = cleanDocTitle;
 
-  // Best-effort author byline: the first user-name block on the page.
-  XAEP.getByline = function getByline() {
-    const nameEl = document.querySelector('[data-testid="User-Name"]');
+  // Best-effort author byline; scope tweet lookups to the selected tweet.
+  XAEP.getByline = function getByline(scope) {
+    const nameEl = (scope || document).querySelector('[data-testid="User-Name"]');
     if (!nameEl) return null;
     const text = XAEP.text(nameEl)
       .split("\n")

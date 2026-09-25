@@ -5,6 +5,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { JSDOM } = require("jsdom");
+const katex = require("katex");
 
 const CONTENT_FILES = [
   "namespace.js",
@@ -170,22 +171,46 @@ test("serializes Markdown with headings, lists, code, links and math", () => {
   assert.match(md, /\$e\^\{i\\pi\}\+1=0\$/); // TeX recovered from KaTeX annotation
 });
 
-test("falls back to thread extraction when no article view exists", () => {
+test("exports only the status named by the URL, ignoring nearby recommendations", () => {
   const threadHtml = `<!doctype html><html><head><title>Jane on X</title></head><body>
-    <article><div data-testid="tweetText">First tweet body</div>
+    <article><a href="/other/status/100"><time>Yesterday</time></a>
+      <a href="/janedev/status/123">Quoted link to requested tweet</a>
+      <div data-testid="User-Name">Other User
+@other</div>
+      <div data-testid="tweetText">Unrelated tweet</div></article>
+    <article><a href="/janedev/status/123"><time>Today</time></a>
+      <div data-testid="User-Name">Jane Dev
+@janedev</div>
+      <div data-testid="tweetText">Requested tweet</div>
       <img src="https://pbs.twimg.com/media/t1.jpg"></article>
-    <article><div data-testid="tweetText">Second tweet body</div></article>
+    <article><a href="/other/status/456"><time>Today</time></a>
+      <div data-testid="tweetText">Recommended tweet</div></article>
   </body></html>`;
   const w = load(threadHtml);
   const d = w.XAEP.detect();
   assert.equal(d.mode, "thread");
   const segs = w.XAEP.extract(d);
   const types = segs.map((s) => s.type);
-  assert.deepEqual(Array.from(types), ["text", "image", "separator", "text"]);
-  assert.equal(segs[0].html, "First tweet body");
+  assert.deepEqual(Array.from(types), ["text", "image"]);
+  assert.equal(segs[0].html, "Requested tweet");
+  assert.equal(w.XAEP.getByline(d.container).name, "Jane Dev");
+  assert.equal(w.XAEP.getByline(d.container).handle, "@janedev");
 });
 
-test("preloadMedia does not scroll the page when media is already loaded", async () => {
+test("does not guess which tweet to export when the status cannot be identified", () => {
+  const w = load(`<!doctype html><body>
+    <article><div data-testid="tweetText">Unrelated one</div></article>
+    <article><div data-testid="tweetText">Unrelated two</div></article>
+  </body>`);
+  assert.deepEqual(Array.from(w.XAEP.extract(w.XAEP.detect())), []);
+});
+
+test("does not present a feed tweet as the current tweet", () => {
+  const w = load(`<!doctype html><body><article><div data-testid="tweetText">Feed item</div></article></body>`, "https://x.com/home");
+  assert.equal(w.XAEP.detect().mode, "none");
+});
+
+test("short, loaded articles do not scroll the page", async () => {
   const w = load(ARTICLE_HTML);
   // Pretend every image is already loaded.
   w.document.querySelectorAll("img").forEach((img) =>
@@ -194,8 +219,47 @@ test("preloadMedia does not scroll the page when media is already loaded", async
   const calls = [];
   w.scrollTo = (x, y) => calls.push([x, y]);
 
-  await w.XAEP.preloadMedia(w.XAEP.detect());
+  await w.XAEP.extractComplete(w.XAEP.detect());
   assert.equal(calls.length, 0, "should not disturb the page's scroll position");
+});
+
+test("captures text-only article blocks before virtualized views disappear", async () => {
+  const w = load(`<!doctype html><body><article><div data-testid="twitterArticleReadView">
+    <div data-block="true">First</div><div data-block="true">Second</div>
+  </div></article></body>`);
+  const scope = w.document.querySelector('[data-testid="twitterArticleReadView"]');
+  Object.defineProperty(w, "innerHeight", { value: 600, configurable: true });
+  scope.getBoundingClientRect = () => ({ top: 0, height: 1200 });
+  w.scrollTo = (_x, y) => {
+    if (y >= 1000) scope.innerHTML = '<div data-block="true">Third</div><div data-block="true">Fourth</div>';
+    else if (y >= 500) scope.innerHTML = '<div data-block="true">Second</div><div data-block="true">Third</div>';
+    else scope.innerHTML = '<div data-block="true">First</div><div data-block="true">Second</div>';
+  };
+  const segments = await w.XAEP.extractComplete(w.XAEP.detect());
+  assert.deepEqual(Array.from(segments, (s) => s.html), ["First", "Second", "Third", "Fourth"]);
+});
+
+test("removes untrusted markup from KaTeX while retaining TeX annotation", () => {
+  const html = ARTICLE_HTML.replace(
+    '<span class="katex"><math',
+    '<span class="katex" onclick="bad()" style="background:url(https://evil.example/x)"><img src="https://evil.example/x" onerror="bad()"><math'
+  );
+  const w = load(html);
+  const math = w.XAEP.extract(w.XAEP.detect()).find((s) => s.type === "math");
+  assert.ok(math);
+  assert.doesNotMatch(math.html, /onclick|onerror|evil\.example|<img/);
+  assert.match(math.html, /annotation encoding="application\/x-tex"/);
+});
+
+test("keeps the SVG and MathML needed for complex KaTeX formulas", () => {
+  const formula = katex.renderToString("\\frac{a}{b}+\\sqrt{x}", { displayMode: true });
+  const w = load(`<!doctype html><body><article><div data-testid="twitterArticleReadView">
+    <div data-block="true">${formula}</div>
+  </div></article></body>`);
+  const math = w.XAEP.extract(w.XAEP.detect()).find((s) => s.type === "math");
+  assert.match(math.html, /<svg[^>]+viewBox=/);
+  assert.match(math.html, /<path[^>]+d=/);
+  assert.match(math.html, /<annotation encoding="application\/x-tex">/);
 });
 
 test("reports 'none' when there is no content", () => {

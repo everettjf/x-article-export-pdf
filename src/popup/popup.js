@@ -131,7 +131,7 @@
   function setMode(mode, title) {
     const map = {
       article: ["Article", "", "Ready to export this X Article", "ok"],
-      thread: ["Thread", "is-thread", "Tweet / thread — will export as text", "warn"],
+      thread: ["Tweet", "is-thread", "Current tweet — will export as text", "warn"],
       none: ["No content", "is-none", "Open an X Article or tweet first", "warn"],
     };
     const [label, cls, status, kind] = map[mode] || map.none;
@@ -177,10 +177,17 @@
   // ---- actions ---------------------------------------------------------------
 
   async function openPrintPage(doc) {
-    await chrome.storage.local.set({ xaepPrintJob: doc });
-    await chrome.tabs.create({
-      url: chrome.runtime.getURL("src/print/printable.html"),
-    });
+    const id = crypto.randomUUID();
+    const key = `xaepPrintJob:${id}`;
+    await chrome.storage.session.set({ [key]: doc });
+    try {
+      await chrome.tabs.create({
+        url: chrome.runtime.getURL(`src/print/printable.html?job=${id}`),
+      });
+    } catch (err) {
+      await chrome.storage.session.remove(key);
+      throw err;
+    }
   }
 
   async function doExport(format, button, workingLabel, okLabel) {

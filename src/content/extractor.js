@@ -152,8 +152,64 @@
         mathNode && mathNode.getAttribute("display") === "block"
           ? "block"
           : "inline";
-      segments.push({ type: "math", html: span.outerHTML, display });
+      segments.push({ type: "math", html: sanitizeKatex(span), display });
     });
+  }
+
+  // KaTeX markup comes from the page, not from this extension. Rebuild only the
+  // presentation and MathML subset needed for printing; never copy event
+  // handlers, links, embedded resources, or arbitrary CSS into our origin.
+  const KATEX_TAGS = new Set([
+    "span", "math", "semantics", "annotation", "mrow", "mi", "mn", "mo",
+    "mtext", "mspace", "msup", "msub", "msubsup", "mfrac", "msqrt",
+    "mroot", "mover", "munder", "munderover", "mtable", "mtr", "mtd",
+    "mpadded", "mphantom", "mstyle", "menclose", "svg", "path", "line", "rect",
+  ]);
+  const KATEX_ATTRS = new Set([
+    "aria-hidden", "encoding", "display", "mathvariant", "stretchy", "fence",
+    "separator", "lspace", "rspace", "displaystyle", "scriptlevel",
+    "columnalign", "rowalign", "accent", "accentunder", "xmlns", "viewbox", "width",
+    "height", "fill", "stroke", "stroke-width", "x", "y", "x1", "y1",
+    "x2", "y2", "d", "preserveaspectratio",
+  ]);
+  const KATEX_CSS = new Set([
+    "height", "width", "min-width", "vertical-align", "top", "left", "right",
+    "margin-left", "margin-right", "padding-left", "border-bottom-width",
+  ]);
+
+  function sanitizeKatex(root) {
+    function serialize(node) {
+      if (node.nodeType === Node.TEXT_NODE) return XAEP.escapeHtml(node.nodeValue);
+      if (node.nodeType !== Node.ELEMENT_NODE) return "";
+      const tag = node.localName.toLowerCase();
+      if (!KATEX_TAGS.has(tag)) return "";
+      const attrs = [];
+      for (const attr of node.attributes) {
+        const name = attr.name.toLowerCase();
+        const value = attr.value;
+        if (name === "class" && /^[\w\s-]+$/.test(value)) {
+          attrs.push(`class="${XAEP.escapeHtml(value)}"`);
+        } else if (name === "style") {
+          const safe = value.split(";").map((rule) => {
+            const split = rule.indexOf(":");
+            if (split < 0) return "";
+            const prop = rule.slice(0, split).trim().toLowerCase();
+            const val = rule.slice(split + 1).trim();
+            return KATEX_CSS.has(prop) && /^[-+\d.\s%a-z]+$/i.test(val) &&
+              !/url|expression|var|calc/i.test(val)
+              ? `${prop}:${val}` : "";
+          }).filter(Boolean).join(";");
+          if (safe) attrs.push(`style="${XAEP.escapeHtml(safe)}"`);
+        } else if (KATEX_ATTRS.has(name) && /^[\w\s.,:+\-()%#\/]*$/.test(value)) {
+          const outputName = name === "viewbox" ? "viewBox" :
+            name === "preserveaspectratio" ? "preserveAspectRatio" : name;
+          attrs.push(`${outputName}="${XAEP.escapeHtml(value)}"`);
+        }
+      }
+      const inside = Array.from(node.childNodes).map(serialize).join("");
+      return `<${tag}${attrs.length ? " " + attrs.join(" ") : ""}>${inside}</${tag}>`;
+    }
+    return serialize(root);
   }
 
   // Draft sometimes emits a paragraph that is just the unstyled echo of the code
@@ -196,39 +252,32 @@
 
   // ---- Thread / single tweet fallback ----------------------------------------
 
-  function extractThread() {
-    const articles = Array.from(document.querySelectorAll("article"));
+  function extractThread(container) {
     const segments = [];
 
-    articles.forEach((art, idx) => {
-      const textBlocks = Array.from(
-        art.querySelectorAll('[data-testid="tweetText"]')
-      );
-      if (textBlocks.length) {
-        textBlocks.forEach((b) => {
-          const html = sanitizeInline(b);
-          if (html && !isFillerText(plainText(b))) {
-            segments.push({ type: "text", html });
-          }
-        });
-      } else {
-        const html = sanitizeInline(art);
-        if (html && !isFillerText(plainText(art))) {
+    if (!container) return segments;
+    const art = container;
+    const textBlocks = Array.from(art.querySelectorAll('[data-testid="tweetText"]'));
+    if (textBlocks.length) {
+      textBlocks.forEach((b) => {
+        const html = sanitizeInline(b);
+        if (html && !isFillerText(plainText(b))) {
           segments.push({ type: "text", html });
         }
+      });
+    } else {
+      const html = sanitizeInline(art);
+      if (html && !isFillerText(plainText(art))) {
+        segments.push({ type: "text", html });
       }
+    }
 
-      art
-        .querySelectorAll('img[src*="pbs.twimg.com/media/"]')
-        .forEach((img) => {
-          segments.push({
-            type: "image",
-            src: upgradeImageUrl(img.src),
-            alt: img.alt || "",
-          });
-        });
-
-      if (idx < articles.length - 1) segments.push({ type: "separator" });
+    art.querySelectorAll('img[src*="pbs.twimg.com/media/"]').forEach((img) => {
+      segments.push({
+        type: "image",
+        src: upgradeImageUrl(img.src),
+        alt: img.alt || "",
+      });
     });
 
     return segments;
@@ -242,7 +291,7 @@
       const segs = extractArticle(detection.container);
       if (segs.length) return segs;
     }
-    return extractThread();
+    return extractThread(detection.container);
   };
 
   function waitForImages(imgs, timeoutMs) {
@@ -262,57 +311,68 @@
     ]);
   }
 
-  // Nudge lazy-loaded media into the DOM, while disturbing the live page as
-  // little as possible.
-  //
-  // X virtualizes its layout and lazily mounts content as you scroll; an
-  // aggressive full-document sweep tears down and re-mounts surrounding nodes,
-  // which can leave the (still-open) tab in a greyed "skeleton" state until it
-  // reloads. So we:
-  //   1. skip the sweep entirely when nothing is lazy,
-  //   2. bound the sweep to the detected content container (not the whole
-  //      timeline), and
-  //   3. restore the exact original scroll position (x and y).
-  XAEP.preloadMedia = async function preloadMedia(detection) {
+  // Merge successive views of a virtualized article. X may unmount blocks as
+  // the user scrolls, so extracting only after the sweep can omit its start.
+  function mergeSnapshots(existing, next) {
+    if (!next.length) return existing;
+    if (!existing.length) return next;
+    const oldKeys = existing.map((s) => JSON.stringify(s));
+    const newKeys = next.map((s) => JSON.stringify(s));
+    const contains = (haystack, needle) => {
+      for (let i = 0; i <= haystack.length - needle.length; i++) {
+        if (needle.every((key, j) => haystack[i + j] === key)) return true;
+      }
+      return false;
+    };
+    if (contains(newKeys, oldKeys)) return next;
+    if (contains(oldKeys, newKeys)) return existing;
+    for (let n = Math.min(oldKeys.length, newKeys.length); n > 0; n--) {
+      if (oldKeys.slice(-n).every((key, i) => key === newKeys[i])) {
+        return existing.concat(next.slice(n));
+      }
+    }
+    return existing.concat(next);
+  }
+
+  // Capture each viewport before X can unmount it. A tall article is swept
+  // even when it has no images; otherwise text-only articles can be truncated.
+  XAEP.extractComplete = async function extractComplete(detection) {
+    if (!detection || detection.mode !== "article") return XAEP.extract(detection);
     const scope =
       detection && detection.container && detection.container.querySelectorAll
         ? detection.container
         : document;
 
-    let imgs = Array.from(scope.querySelectorAll("img"));
-
-    // If everything currently in the container is already loaded, don't touch
-    // the page at all — just make sure decoding finished.
-    const lazy = imgs.filter((i) => !i.complete);
-    if (!lazy.length) {
-      return waitForImages(imgs, 1500);
-    }
+    const initial = XAEP.extract(detection);
+    const imgs = Array.from(scope.querySelectorAll("img"));
+    const rect = scope.getBoundingClientRect();
+    const needsSweep = rect.height > window.innerHeight * 1.2 ||
+      imgs.some((img) => !img.complete);
+    if (!needsSweep) return initial;
 
     const startX = window.scrollX;
     const startY = window.scrollY;
+    const top = Math.max(0, rect.top + startY);
+    const bottom = top + Math.max(rect.height, scope.scrollHeight);
+    const step = Math.max(window.innerHeight * 0.8, 500);
+    let captured = [];
 
-    // Compute the container's vertical extent in page coordinates so we sweep
-    // only the article, not the entire feed above/below it.
-    let top = 0;
-    let bottom = document.documentElement.scrollHeight;
-    if (scope !== document && scope.getBoundingClientRect) {
-      const rect = scope.getBoundingClientRect();
-      top = Math.max(0, rect.top + startY);
-      bottom = top + scope.scrollHeight;
+    try {
+      for (let y = top; y <= bottom; y += step) {
+        window.scrollTo(startX, y);
+        await delay(140);
+        const current = XAEP.detect();
+        if (current.mode === "article") {
+          captured = mergeSnapshots(captured, XAEP.extract(current));
+        }
+      }
+    } finally {
+      window.scrollTo(startX, startY);
     }
-
-    const step = Math.max(window.innerHeight * 0.9, 600);
-    for (let y = top; y <= bottom; y += step) {
-      window.scrollTo(startX, y);
-      await delay(110);
-    }
-
-    // Restore the user's exact position so the page looks untouched.
-    window.scrollTo(startX, startY);
+    // Let X remount the original viewport before the popup reports success.
     await delay(120);
-
-    imgs = Array.from(scope.querySelectorAll("img"));
-    await waitForImages(imgs, 2500);
+    await waitForImages(Array.from(scope.querySelectorAll("img")), 2500);
+    return captured.length >= initial.length ? captured : initial;
   };
 
   function delay(ms) {

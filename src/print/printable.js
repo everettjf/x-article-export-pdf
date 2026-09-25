@@ -7,7 +7,7 @@
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "xaepPrintJob";
+  const STORAGE_PREFIX = "xaepPrintJob:";
 
   function waitForImages(timeoutMs) {
     const imgs = Array.prototype.slice
@@ -49,10 +49,15 @@
   }
 
   async function main() {
+    const id = new URLSearchParams(location.search).get("job");
+    if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
+      return fail("The export link is invalid.");
+    }
+    const key = STORAGE_PREFIX + id;
     let job;
     try {
-      const data = await chrome.storage.local.get(STORAGE_KEY);
-      job = data[STORAGE_KEY];
+      const data = await chrome.storage.session.get(key);
+      job = data[key];
     } catch (e) {
       return fail("Could not read the export data.");
     }
@@ -64,7 +69,7 @@
 
     // Clear the stored job so a later reload doesn't reprint stale content.
     try {
-      await chrome.storage.local.remove(STORAGE_KEY);
+      await chrome.storage.session.remove(key);
     } catch (_) {
       /* ignore */
     }

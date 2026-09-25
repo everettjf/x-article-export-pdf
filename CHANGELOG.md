@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] — 2026-09-24
+
+### Fixed
+
+- Export only the current status tweet, excluding replies and recommendations.
+- Capture each viewport of long articles before X unmounts earlier content.
+- Give concurrent PDF print pages separate temporary jobs.
+- Sanitize KaTeX markup before rendering it on the extension page.
+
+### Changed
+
+- Inject content scripts only after a toolbar click and remove unused broad site
+  and download permissions.
+- Package KaTeX styles and fonts locally for offline formula rendering.
+- Keep print jobs in session storage and clean up the old persistent job key.
+- Update privacy and tweet-export descriptions to match actual behavior.
+
 ## [1.0.1] — 2026-06-06
 
 ### Fixed
@@ -33,5 +50,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - jsdom-based test suite covering the full extraction pipeline.
 - GitHub Pages website and CI.
 
+[1.0.2]: https://github.com/everettjf/x-article-export-pdf/releases/tag/v1.0.2
 [1.0.1]: https://github.com/everettjf/x-article-export-pdf/releases/tag/v1.0.1
 [1.0.0]: https://github.com/everettjf/x-article-export-pdf/releases/tag/v1.0.0

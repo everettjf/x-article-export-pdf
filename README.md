@@ -9,7 +9,7 @@
 [![CI](https://github.com/everettjf/x-article-export-pdf/actions/workflows/ci.yml/badge.svg)](https://github.com/everettjf/x-article-export-pdf/actions/workflows/ci.yml)
 [![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-1d9bf0.svg)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-0f1419.svg)](LICENSE)
-[![No tracking](https://img.shields.io/badge/Privacy-100%25%20local-00ba7c.svg)](PRIVACY.md)
+[![No tracking](https://img.shields.io/badge/Privacy-local%20processing-00ba7c.svg)](PRIVACY.md)
 
 [**Website**](https://everettjf.github.io/x-article-export-pdf/) · [Install](#-install) · [How it works](#-how-it-works) · [FAQ](#-faq)
 
@@ -37,8 +37,9 @@ X Article Export takes the opposite approach. It reads X's article DOM — the s
 - **Keeps what matters** — preserves hyperlinks (resolving `t.co` to the visible URL), **bold**/*italic*, `inline code`, headings H1–H6, block-quotes, and image alt text.
 - **Two reading styles** — *Modern* (system sans) or *Serif*, plus A4 / Letter page sizes.
 - **Original-resolution images** — rewrites media URLs to `name=orig`.
-- **Thread fallback** — not an article? It still exports the tweet/thread as clean text.
-- **100% local & private** — no servers, no analytics, no network calls except loading the page's own images and (optionally) KaTeX styles. See [PRIVACY.md](PRIVACY.md).
+- **Tweet fallback** — not an article? It exports the current tweet as clean text without replies or recommendations.
+- **Private article processing** — article content stays in your browser; export images come from X's media CDN, and math styles are packaged locally. Preferences may sync through your browser account. See [PRIVACY.md](PRIVACY.md).
+- **Minimal permissions** — accesses the current X tab only after you click the extension; no persistent X site access.
 - **Zero build step** — plain, readable JavaScript. Clone and load.
 
 ## 🚀 Install
@@ -68,7 +69,7 @@ One click, auto-updates, works in Chrome and any Chromium browser (Edge, Brave, 
 4. **Save as PDF** → a clean print dialog opens; choose *Save as PDF*.
    **Markdown** → a `.md` file downloads instantly.
 
-If the icon says *Thread* instead of *Article*, you're on a regular tweet — it'll still export, just as plain text.
+If the icon says *Tweet* instead of *Article*, you're on a regular tweet — it'll still export, just as plain text.
 
 ## 🛠 How it works
 
@@ -77,7 +78,7 @@ If the icon says *Thread* instead of *Article*, you're on a regular tweet — it
       │
       ▼
 ┌──────────────┐   detect()      ┌─────────────────────────┐
-│  detector.js │ ──────────────► │ article / thread / none  │
+│  detector.js │ ──────────────► │ article / tweet / none   │
 └──────────────┘                 └─────────────────────────┘
       │ container
       ▼
@@ -103,7 +104,7 @@ npm test         # runs the extraction pipeline against a synthetic X article DO
 npm run lint     # syntax-checks every source file
 ```
 
-The tests in [`test/extension.test.js`](test/extension.test.js) load the real content scripts into jsdom and assert structure, escaping, link resolution, list grouping, code fidelity, Markdown output, and the thread fallback.
+The tests in [`test/extension.test.js`](test/extension.test.js) load the real content scripts into jsdom and assert structure, escaping, link resolution, list grouping, code fidelity, Markdown output, and the tweet fallback.
 
 Project layout:
 
@@ -121,10 +122,10 @@ test/                      jsdom test suite
 ## ❓ FAQ
 
 **Does it upload my data anywhere?**
-No. Everything runs in your browser. The only network requests are for the article's own images and an optional KaTeX stylesheet (for math). [Details](PRIVACY.md).
+No article content is uploaded to this project. Exports are built in your browser; article images come from X's media CDN, and math styling is packaged locally. Preferences may sync through your browser account. [Details](PRIVACY.md).
 
-**The button says "Thread", not "Article".**
-You're on a normal tweet/thread page, not the long-form article view. Try the article's `/i/articles/…` link. Thread pages still export as clean text.
+**The button says "Tweet", not "Article".**
+You're on a normal tweet page, not the long-form article view. Try the article's `/i/articles/…` link. Only the current tweet is exported, so replies and recommendations stay out of the file.
 
 **Math/code looks off.**
 Open an issue with the article URL. Code uses the exact text X renders; math is reconstructed from KaTeX. X changes its DOM occasionally — selectors are isolated for quick fixes.
