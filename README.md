@@ -4,6 +4,8 @@
 
 # X Article Export — PDF & Markdown
 
+[Discord](https://discord.gg/eGzEaP6TzR)
+
 **Turn X (Twitter) long-form Articles into clean, beautiful PDFs and Markdown — by rebuilding the real content, not screenshotting the page.**
 
 [![CI](https://github.com/everettjf/x-article-export-pdf/actions/workflows/ci.yml/badge.svg)](https://github.com/everettjf/x-article-export-pdf/actions/workflows/ci.yml)
